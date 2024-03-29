@@ -1,3 +1,32 @@
+VALID_MASKS = {'255.255.255.255', '255.255.255.254', '255.255.255.252', '255.255.255.248',
+               '255.255.255.240', '255.255.255.224', '255.255.255.192', '255.255.255.128',
+               '255.255.255.0', '255.255.254.0', '255.255.252.0', '255.255.248.0',
+               '255.255.240.0', '255.255.224.0', '255.255.192.0', '255.255.128.0',
+               '255.255.0.0', '255.254.0.0', '255.252.0.0', '255.248.0.0',
+               '255.240.0.0', '255.224.0.0', '255.192.0.0', '255.128.0.0',
+               '255.0.0.0', '254.0.0.0', '252.0.0.0', '248.0.0.0',
+               '240.0.0.0', '224.0.0.0', '192.0.0.0', '128.0.0.0', '0.0.0.0'}
+
+EXIT_COMMANDS = {'quit', 'exit', 'q'}
+
+
+def mask_verify(func):
+    def inner(_mask: int | str):
+        if isinstance(_mask, int):
+            if 0 <= _mask <= 32:
+                return func(_mask)
+            else:
+                raise ValueError('输入掩码范围应为 0 ~ 32')
+        elif isinstance(_mask, str):
+            # 检测点分十进制掩码是否符合规范
+            if _mask in VALID_MASKS:
+                return func(_mask)
+            else:
+                raise ValueError('输入的掩码不符合规范')
+    return inner
+
+
+@mask_verify
 def inter_to_dotted_decimal(mask_integer: int) -> str:
     """将整数掩码转换为点分十进制掩码.
 
@@ -19,6 +48,7 @@ def inter_to_dotted_decimal(mask_integer: int) -> str:
     return f"{int(_mask[0], 2)}.{int(_mask[1], 2)}.{int(_mask[2], 2)}.{int(_mask[3], 2)}"
 
 
+@mask_verify
 def dotted_decimal_to_integer(mask_dotted_decimal: str) -> int:
     """将点分十进制掩码转换为整数掩码.
 
@@ -34,24 +64,28 @@ def dotted_decimal_to_integer(mask_dotted_decimal: str) -> int:
 
 
 if __name__ == '__main__':
-    # TODO: 装饰器校验int类型数据，范围
-    # TODO: 校验用户输入的x.x.x.x的完整性
-    mask = input('> ')
-    try:
-        mask = int(mask)
-    except ValueError as error:
-        print(error)
-    else:
-        if 1 <= mask <= 32:
+    while True:
+        mask = input('> ')
+        if mask in EXIT_COMMANDS:
+            print('Bye!')
+            break
+
+        try:
+            mask = int(mask)
+        except:
             pass
+
+        if isinstance(mask, int):
+            try:
+                result = inter_to_dotted_decimal(mask)
+                print(result)
+            except ValueError as error:
+                print(error)
+        elif isinstance(mask, str):
+            try:
+                result = dotted_decimal_to_integer(mask)
+                print(result)
+            except ValueError as error:
+                print(error)
         else:
-            raise ValueError('掩码值非法')
-
-    if isinstance(mask, int):
-        result = inter_to_dotted_decimal(mask)
-    elif isinstance(mask, str):
-        result = dotted_decimal_to_integer(mask)
-    else:
-        result = None
-
-    print(result)
+            result = None
